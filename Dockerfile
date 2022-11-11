@@ -1,4 +1,4 @@
-FROM mediawiki:1.36.0
+FROM mediawiki:1.36.4
 
 COPY ./content/extensions /var/www/html/extensions
 COPY ./content/composer.local.json /var/www/html/composer.local.json
@@ -9,16 +9,18 @@ COPY ./content/circuit-tree160x160.png /var/www/html/skins/common/images/circuit
 RUN chown www-data:www-data /var/www/html/skins/common/images/circuit-tree160x160.png
 
 # Workdir default is /var/www/html
-RUN \
+#RUN \
     # update system
-    apt-get update && \
-    apt-get upgrade -y && \
+RUN apt-get update
+RUN apt-get upgrade -y 
     # chown our extensions
-    chown -R www-data:www-data /var/www/html/extensions/mediawiki-aws-s3 &&\
+RUN chown -R www-data:www-data /var/www/html/extensions/mediawiki-aws-s3
     # get composer and update
-    apt-get install zip unzip && \
-    curl https://getcomposer.org/composer-2.phar > composer.phar && \
-    php ./composer.phar update && \
-    apt-get remove --purge zip unzip -y && \
-    rm -f ./composer.phar
+RUN apt-get install zip unzip
+RUN curl https://getcomposer.org/composer-2.phar > composer.phar
+RUN php ./composer.phar config --no-plugins allow-plugins.wikimedia/composer-merge-plugin true
+RUN php ./composer.phar config --no-plugins allow-plugins.composer/installers true
+RUN php ./composer.phar update --prefer-stable
+RUN apt-get remove --purge zip unzip -y
+RUN rm -f ./composer.phar
 
